@@ -2,6 +2,7 @@
 OUTPUT = topic-controller
 OUTPUT_LINUX = $(OUTPUT)-linux
 BUILD_FLAGS =
+TAG = 0.0.4-snapshot
 
 ifeq ($(OS),Windows_NT)
     detected_OS := Windows
@@ -32,12 +33,15 @@ $(OUTPUT_LINUX): $(GO_SOURCES) vendor
 	# See e.g. https://blog.codeship.com/building-minimal-docker-containers-for-go-applications/ for details
 	CGO_ENABLED=0 GOOS=linux go build $(BUILD_FLAGS) -v -a -installsuffix cgo -o $(OUTPUT_LINUX) cmd/topic-controller.go
 
-vendor: Gopkg.toml
-	dep ensure
+vendor: glide.lock
+	glide install -v --force
+
+glide.lock: glide.yaml
+	glide up -v --force
 
 clean:
 	rm -f $(OUTPUT)
 	rm -f $(OUTPUT_LINUX)
 
 dockerize: build-for-docker
-	docker build . -t projectriff/topic-controller:0.0.4-snapshot
+	docker build . -t projectriff/topic-controller:$(TAG)
